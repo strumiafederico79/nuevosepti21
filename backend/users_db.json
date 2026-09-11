@@ -1,0 +1,24 @@
+{
+  "users": {
+    "e41667bc-e44b-4a15-bdf3-95fbd1190971": {
+      "id": "e41667bc-e44b-4a15-bdf3-95fbd1190971",
+      "email": "federicostrumia1@gmail.com",
+      "password_hash": "jEo1wYRE2pXBUV8I/Ir8EUtgRIajc09ZXSvyVnQBD2499HjA+OQ3DX/wpgIIQ/k7",
+      "role": "admin",
+      "status": "approved",
+      "name": "Admin",
+      "created_at": 1786478659.6769128,
+      "approved_at": 1786478659.6769147
+    },
+    "fc8e7d6a-a054-4b15-94a3-d22d6343a9b4": {
+      "id": "fc8e7d6a-a054-4b15-94a3-d22d6343a9b4",
+      "email": "strumiaf5@gmail.com",
+      "password_hash": "v5Pj8XtEIjgioayk5cZVgrNbZohrYu5mPPPWJ5Qj07nCdolaZLzOvVlwizCYAOT1",
+      "role": "user",
+      "status": "approved",
+      "name": "Fede",
+      "created_at": 1786493675.3500497,
+      "approved_at": 1786493703.2065363
+    }
+  }
+}
