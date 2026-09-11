@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MASTER — Intelligent Mastering Console</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/header.css">
+  <link rel="stylesheet" href="css/left-panel.css">
+  <link rel="stylesheet" href="css/shared.css">
+  <link rel="stylesheet" href="css/center-console.css">
+  <link rel="stylesheet" href="css/right-rack.css">
+  <link rel="stylesheet" href="css/theme.css">
+</head>
+<body>
+  <!-- ═══════════════ HEADER ═══════════════ -->
+  <header id="app-header">
+    <div id="header-file" class="header-section header-file-section">
+      <input type="file" id="file-input" accept="audio/*" hidden>
+      <button id="btn-upload" title="Subir archivo">📂</button>
+      <div class="header-track-info">
+        <span id="info-name" class="header-track-name">Sin archivo</span>
+        <span id="headerTrackMeta" class="header-track-meta"></span>
+      </div>
+    </div>
+    <div id="header-format" class="header-section">
+      <select id="s-format" title="Formato de salida">
+        <option value="wav">WAV</option>
+        <option value="flac">FLAC</option>
+        <option value="mp3">MP3</option>
+      </select>
+      <select id="s-bitdepth" title="Bit depth">
+        <option value="16">16</option>
+        <option value="24" selected>24</option>
+        <option value="32">32f</option>
+      </select>
+    </div>
+    <div id="header-dashboard" class="header-section">
+      <span class="dash-label" title="CPU">CPU <span id="cpu-usage">--</span>%</span>
+      <span class="dash-label" title="RAM">RAM <span id="ram-usage">--</span>%</span>
+      <span class="dash-label" title="Health" id="health-dot">●</span>
+    </div>
+    <div id="header-progress" class="header-section">
+      <div id="progress-bar-wrap">
+        <div id="progress-bar-fill"></div>
+      </div>
+      <span id="progress-stage">Idle</span>
+    </div>
+    <div id="header-brand" class="header-section">
+      <span class="brand-name">MASTER</span>
+      <span class="brand-version">v1.0</span>
+    </div>
+    <div id="header-theme" class="header-section">
+      <select id="theme-select" title="Seleccionar tema">
+        <option value="dark">Studio Dark</option>
+        <option value="neon">Neon Console</option>
+        <option value="aurora">Glass Aurora</option>
+        <option value="luxe">Mono Luxe</option>
+        <option value="retro">Retro VU</option>
+      </select>
+    </div>
+    <div id="header-user" class="header-section">
+      <span id="username-display">—</span>
+    </div>
+    <div id="header-logout" class="header-section">
+      <button id="btn-logout" title="Cerrar sesión">⏻</button>
+    </div>
+    <div id="headerResizeHandle" class="resize-handle-h" tabindex="0" role="separator" aria-label="Redimensionar header"></div>
+  </header>
+
+  <!-- ═══════════════ AUTH OVERLAY ═══════════════ -->
+  <div id="auth-overlay">
+    <div id="auth-container"></div>
+  </div>
+
+  <!-- ═══════════════ MAIN 3-COLUMN GRID ═══════════════ -->
+  <main id="app-main">
+    <!-- ─── LEFT PANEL: DSP Plugins ─── -->
+    <aside id="left-panel" class="lg-sidebar">
+      <section id="dsp-list-section">
+        <label class="section-title">DSP Disponibles</label>
+        <div id="dsp-plugins-mount"></div>
+      </section>
+    </aside>
+
+    <div id="leftResizeHandle" class="resize-handle-v" tabindex="0" role="separator" aria-label="Redimensionar panel izquierdo"></div>
+
+    <!-- ─── CENTER: STUDIO CONSOLE ─── -->
+    <section id="center-console" class="lg-main-stack">
+      <!-- Sub-header: Studio Console | Panel Analisis -->
+      <div class="ws-tabs" role="tablist">
+        <button class="ws-tab active" role="tab" data-workspace="console" aria-selected="true">Console</button>
+        <button class="ws-tab" role="tab" data-workspace="analysis" aria-selected="false">Analysis</button>
+        <button class="ws-tab" role="tab" data-workspace="presets" aria-selected="false">Presets</button>
+      </div>
+
+      <!-- ═══ WORKSPACE PANE: Console ═══ -->
+      <div class="ws-pane active" data-workspace="console">
+        <!-- Track Title -->
+        <div class="console-track-header">
+          <span id="consoleTrackTitle" class="track-title">Sin archivo</span>
+          <span id="consoleTrackMeta" class="track-meta"></span>
+        </div>
+
+        <!-- ═══ ROW 1: Spectrum + VU Meters ═══ -->
+      <div class="console-row console-row-top">
+        <!-- VU Meters L/R (compactos a la izquierda) -->
+        <div id="console-meter-lr" class="console-vu-wrap">
+          <div class="vu-channel"><div id="consoleMeterL" class="vu-bar"></div><span>L</span></div>
+          <div class="vu-channel"><div id="consoleMeterR" class="vu-bar"></div><span>R</span></div>
+        </div>
+
+        <!-- Spectrum Analyzer (ancho completo) -->
+        <div id="spectrum-wrap">
+          <canvas id="spectrum-canvas"></canvas>
+          <div class="spectrum-scale">
+            <span>20Hz</span><span>100</span><span>500</span><span>1k</span><span>5k</span><span>10k</span><span>20kHz</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="console-resize-handle" id="spectrumResizeHandle" tabindex="0" role="separator" aria-label="Redimensionar spectrum"></div>
+
+      <!-- ═══ ROW 2: Waveform (debajo del spectrum) ═══ -->
+      <div id="waveform-wrap" class="console-row">
+        <canvas id="lgmdmWaveformCanvas"></canvas>
+      </div>
+
+      <div class="console-resize-handle" id="waveformResizeHandle" tabindex="0" role="separator" aria-label="Redimensionar waveform"></div>
+
+      <!-- ═══ Meters Panel ═══ -->
+      <div class="console-meters-panel">
+        <!-- Level Meters -->
+        <div class="meter-group">
+          <div class="meter-item"><span class="meter-label">Peak</span><div class="meter-bar-wrap"><div id="meterPeakFill" class="meter-bar-fill"></div></div><span id="meterPeakReadout" class="meter-readout">-∞ dB</span></div>
+          <div class="meter-item"><span class="meter-label">RMS</span><div class="meter-bar-wrap"><div id="meterRmsFill" class="meter-bar-fill"></div></div><span id="meterRmsReadout" class="meter-readout">-∞ dB</span></div>
+          <div class="meter-item"><span class="meter-label">LUFS</span><div class="meter-bar-wrap"><div id="meterLufsFill" class="meter-bar-fill"></div></div><span id="meterLufsReadout" class="meter-readout">-∞ LUFS</span></div>
+          <div class="meter-item"><span class="meter-label">True Peak</span><div class="meter-bar-wrap"><div id="meterTruePeakFill" class="meter-bar-fill"></div></div><span id="meterTruePeakReadout" class="meter-readout">-∞ dBTP</span></div>
+          <div class="meter-item"><span class="meter-label">Stereo</span><div class="meter-bar-wrap"><div id="stereoMeterFill" class="meter-bar-fill"></div></div><span id="stereoMeterReadout" class="meter-readout">corr: 1.00</span></div>
+          <div class="meter-item"><span class="meter-label">Mono</span><span id="monoCompatReadout" class="meter-readout">mono: 0 dB</span></div>
+        </div>
+        <!-- Frequency Bands -->
+        <div class="freq-bands">
+          <div class="fb-item"><div class="fb-bar-wrap"><div id="fb-sub" class="fb-bar"></div></div><span id="fbv-sub" class="fb-readout">0 dB</span><span class="fb-label">Sub</span></div>
+          <div class="fb-item"><div class="fb-bar-wrap"><div id="fb-bass" class="fb-bar"></div></div><span id="fbv-bass" class="fb-readout">0 dB</span><span class="fb-label">Bass</span></div>
+          <div class="fb-item"><div class="fb-bar-wrap"><div id="fb-lowmid" class="fb-bar"></div></div><span id="fbv-lowmid" class="fb-readout">0 dB</span><span class="fb-label">LowMid</span></div>
+          <div class="fb-item"><div class="fb-bar-wrap"><div id="fb-mid" class="fb-bar"></div></div><span id="fbv-mid" class="fb-readout">0 dB</span><span class="fb-label">Mid</span></div>
+          <div class="fb-item"><div class="fb-bar-wrap"><div id="fb-highmid" class="fb-bar"></div></div><span id="fbv-highmid" class="fb-readout">0 dB</span><span class="fb-label">HiMid</span></div>
+          <div class="fb-item"><div class="fb-bar-wrap"><div id="fb-air" class="fb-bar"></div></div><span id="fbv-air" class="fb-readout">0 dB</span><span class="fb-label">Air</span></div>
+        </div>
+        <!-- Studio GR Panel -->
+        <div id="studioGrPanel" class="studio-gr-panel">
+          <div id="studioCenterChain" class="studio-chain"></div>
+          <div class="gr-bands">
+            <div class="gr-band"><span class="gr-label">Comp</span><div class="gr-bar-wrap"><div class="gr-bar" id="studioGrBar_comp"></div></div><span class="gr-value" id="studioGr_comp">-- dB</span></div>
+            <div class="gr-band"><span class="gr-label">Low</span><div class="gr-bar-wrap"><div class="gr-bar" id="studioGrBar_low"></div></div><span class="gr-value" id="studioGr_low">-- dB</span></div>
+            <div class="gr-band"><span class="gr-label">Mid</span><div class="gr-bar-wrap"><div class="gr-bar" id="studioGrBar_mid"></div></div><span class="gr-value" id="studioGr_mid">-- dB</span></div>
+            <div class="gr-band"><span class="gr-label">High</span><div class="gr-bar-wrap"><div class="gr-bar" id="studioGrBar_high"></div></div><span class="gr-value" id="studioGr_high">-- dB</span></div>
+            <div class="gr-band"><span class="gr-label">Glue</span><div class="gr-bar-wrap"><div class="gr-bar" id="studioGrBar_glue"></div></div><span class="gr-value" id="studioGr_glue">-- dB</span></div>
+          </div>
+        </div>
+        <!-- Stage Bypass Cards -->
+        <div class="stage-cards">
+          <div class="lg-stage-card" data-stage="comp"><span>Comp</span><em>ACTIVE</em></div>
+          <div class="lg-stage-card" data-stage="stereo"><span>Stereo</span><em>ACTIVE</em></div>
+          <div class="lg-stage-card" data-stage="limiter"><span>Limiter</span><em>ACTIVE</em></div>
+        </div>
+        <!-- Multiband GR -->
+        <div id="mbGrSection" class="mb-gr-section hidden-panel">
+          <div class="gr-band-row"><span class="gr-band-label">Low</span><div class="gr-bar-wrap"><div id="grBarLow" class="gr-bar"></div></div><span id="grReadLow" class="gr-band-readout">0 dB</span></div>
+          <div class="gr-band-row"><span class="gr-band-label">Mid</span><div class="gr-bar-wrap"><div id="grBarMid" class="gr-bar"></div></div><span id="grReadMid" class="gr-band-readout">0 dB</span></div>
+          <div class="gr-band-row"><span class="gr-band-label">High</span><div class="gr-bar-wrap"><div id="grBarHigh" class="gr-bar"></div></div><span id="grReadHigh" class="gr-band-readout">0 dB</span></div>
+          <div class="gr-band-row"><span class="gr-band-label">Comp</span><div class="gr-bar-wrap"><div id="grBarComp" class="gr-bar"></div></div><span id="grReadComp" class="gr-band-readout">0 dB</span></div>
+          <div class="gr-band-row"><span class="gr-band-label">Glue</span><div class="gr-bar-wrap"><div id="grBarGlue" class="gr-bar"></div></div><span id="grReadGlue" class="gr-band-readout">0 dB</span></div>
+          <div class="gr-band-row"><span class="gr-band-label">Parallel</span><div class="gr-bar-wrap"><div id="grBarParallel" class="gr-bar"></div></div><span id="grReadParallel" class="gr-band-readout">0 dB</span></div>
+        </div>
+      </div>
+
+      <div class="console-resize-handle" id="metersResizeHandle" tabindex="0" role="separator" aria-label="Redimensionar meters"></div>
+
+      <!-- ═══ Console Faders + Readouts ═══ -->
+      <div class="console-faders-panel">
+        <div class="fader-item"><label>Input</label><input type="range" id="consoleInputFader" min="-24" max="24" value="0" step="0.1"><span id="consoleInputReadout" class="fader-readout">0 dB</span></div>
+        <div class="fader-item"><label>Comp</label><input type="range" id="consoleCompThreshold" min="-48" max="0" value="-18" step="0.1"><span id="consoleCompReadout" class="fader-readout">-18 dB / 4:1</span></div>
+        <div class="fader-item"><label>Stereo</label><input type="range" id="consoleStereoFader" min="0" max="2" value="1" step="0.01"><span id="consoleStereoReadout" class="fader-readout">100%</span></div>
+        <div class="fader-item"><label>Limiter</label><input type="range" id="consoleLimiterFader" min="-6" max="0" value="-0.3" step="0.1"><span id="consoleLimiterReadout" class="fader-readout">-0.3 dB</span></div>
+        <div class="fader-item"><span id="consoleOutputReadout" class="fader-readout output-readout">-∞ LUFS</span></div>
+      </div>
+
+      <!-- ═══ Console Chain GR ═══ -->
+      <div class="console-chain-gr">
+        <span id="consoleInputGr" class="chain-gr">0 dB</span>
+        <span id="consoleCompGr" class="chain-gr">0 dB</span>
+        <span id="consoleStereoGr" class="chain-gr">0 dB</span>
+        <span id="consoleLimiterGr" class="chain-gr">0 dB</span>
+        <span id="consoleGlueGr" class="chain-gr">0 dB</span>
+      </div>
+
+      <!-- ═══ Console Meter Sync Readouts (hidden, source of truth) ═══ -->
+      <div style="display:none">
+        <span id="meterPeakReadout2"></span>
+        <span id="consolePeak"></span>
+        <span id="meterLufsReadout2"></span>
+        <span id="consoleLufs"></span>
+        <span id="meterTruePeakReadout2"></span>
+        <span id="consoleTruePeak"></span>
+        <span id="meterRmsReadout2"></span>
+        <span id="consoleRms"></span>
+        <span id="stereoMeterReadout2"></span>
+        <span id="consoleCorr"></span>
+      </div>
+
+      <!-- ═══ ROW 3: Preview + Play + Master Buttons ═══ -->
+      <div class="console-row console-row-controls">
+        <!-- Left: Preview checkbox + Play/Stop -->
+        <div class="controls-left">
+          <label id="preview-toggle-wrap">
+            <input type="checkbox" id="s-livepreview">
+            <span>Preview en vivo</span>
+          </label>
+          <div id="previewRenderStatus" class="preview-render-status" aria-live="polite" hidden>
+            <div class="preview-render-label"><span id="previewRenderText">Preview inactivo</span><strong id="previewRenderPercent">0%</strong></div>
+            <div class="preview-render-track" role="progressbar" aria-label="Progreso de render del preview" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="previewRenderFill" class="preview-render-fill"></div></div>
+          </div>
+          <div class="playback-inline">
+            <button id="previewPlayBtn" disabled>▶</button>
+            <button id="previewStopBtn" disabled>■</button>
+          </div>
+          <div id="previewAudioWrap"></div>
+          <span id="consoleTime" class="time-display">00:00</span>
+          <div id="consolePlayhead" class="playhead"></div>
+          <span id="consoleDuration" class="time-display">00:00</span>
+        </div>
+
+        <!-- Right: Action Buttons -->
+        <div id="action-buttons" class="controls-right">
+          <button id="btn-master">⚡ Master</button>
+          <button id="btn-master-ref">🔎 Ref</button>
+          <button id="btn-ai-suggest">🤖 IA</button>
+          <button id="btn-analyze">📊 Analizar</button>
+          <button id="btn-auto-master">🧠 Auto</button>
+          <button id="btn-download" style="display:none">⬇ Descargar</button>
+        </div>
+      </div>
+
+      <!-- ═══ LAIA Chat ═══ -->
+      <section id="laia-chat">
+        <div id="chat-messages"></div>
+        <div id="chat-input-wrap">
+          <textarea id="chat-input" placeholder="Hablá con LAIA…" rows="2"></textarea>
+          <button id="chat-send">▶</button>
+        </div>
+      </section>
+
+      <!-- A/B Controls (ocultos por defecto) -->
+      <div class="ab-controls" hidden>
+        <button id="consoleABToggle" class="ab-toggle" aria-pressed="false">A/B</button>
+        <span id="consoleABReadout">MASTER</span>
+        <button id="consoleABMaster" class="ab-btn active">Master</button>
+        <button id="consoleABOriginal" class="ab-btn">Original</button>
+      </div>
+
+      <!-- Results Area -->
+      <div id="results-area"></div>
+
+      <!-- Console Status -->
+      <div id="consoleStatus" class="console-status">Idle</div>
+      </div><!-- /ws-pane console -->
+
+      <!-- ═══ WORKSPACE PANE: Analysis ═══ -->
+      <div class="ws-pane" data-workspace="analysis">
+        <div id="analysisStatus" class="analysis-status"></div>
+        <div id="analysisDynamicContent" class="analysis-dynamic-content"></div>
+      </div>
+
+      <!-- ═══ WORKSPACE PANE: Presets ═══ -->
+      <div class="ws-pane" data-workspace="presets">
+        <div class="presets-content"><p class="presets-placeholder">Presets próximamente…</p></div>
+      </div>
+    </section>
+
+    <div id="rightResizeHandle" class="resize-handle-v" tabindex="0" role="separator" aria-label="Redimensionar panel derecho"></div>
+
+    <!-- ─── RIGHT PANEL ─── -->
+    <aside id="right-panel" class="lg-rack-panel">
+      <!-- Studio Rack (mount points) -->
+      <section id="studioRackMount" class="studio-rack"></section>
+
+      <!-- Reference Band EQ -->
+      <section id="ref-band-section" class="ref-band-section" hidden>
+        <label>Bandas EQ:</label>
+        <input type="range" id="s-band-count" min="3" max="31" value="7">
+        <span id="v-band-count">7</span>
+        <button id="btn-band-reset">Reset</button>
+        <div id="ref-band-controls" class="ref-band-controls"></div>
+      </section>
+
+      <!-- A/B Panel -->
+      <section id="abPanelWrap" class="ab-wrap" hidden>
+        <h3>Comparación A/B</h3>
+        <div class="ab-controls">
+          <button id="abCaptureA" class="ab-btn">Capturar A</button>
+          <button id="abCaptureB" class="ab-btn">Capturar B</button>
+          <button id="abPlayA" class="ab-btn" disabled>▶ A</button>
+          <button id="abPlayB" class="ab-btn" disabled>▶ B</button>
+        </div>
+        <div id="abStatus"></div>
+        <div id="abAudioWrap"></div>
+      </section>
+
+      <!-- Reference Mastering Config -->
+      <section id="ref-mastering-config" class="ref-mastering-config" hidden>
+        <h3>Reference Mastering</h3>
+        <div class="ref-config-group">
+          <label><input type="checkbox" id="s-ref-eq" checked> EQ Matching</label>
+          <label>Boost máx: <input type="range" id="s-ref-boost" min="0" max="12" value="6" step="0.5"> <span id="v-ref-boost">6</span> dB</label>
+          <label>Cut máx: <input type="range" id="s-ref-cut" min="0" max="12" value="6" step="0.5"> <span id="v-ref-cut">6</span> dB</label>
+          <label>Método: <select id="s-ref-eqmethod"><option value="heuristic">Heuristic</option><option value="iterative">Iterative</option></select></label>
+          <label>EQ passes: <input type="range" id="s-ref-eq-passes" min="1" max="8" value="3"> <span id="v-ref-eq-passes">3</span></label>
+          <label><input type="checkbox" id="s-ref-ms-eq"> Mid/Side EQ</label>
+        </div>
+        <div class="ref-config-group">
+          <label><input type="checkbox" id="s-ref-loudness" checked> Loudness Match</label>
+          <label><input type="checkbox" id="s-ref-dynamics" checked> Dynamics Match</label>
+          <label><input type="checkbox" id="s-ref-stereo" checked> Stereo Match</label>
+          <label><input type="checkbox" id="s-ref-transient" checked> Transient Match</label>
+          <label><input type="checkbox" id="s-ref-subbass"> Sub-bass Match</label>
+          <label><input type="checkbox" id="s-ref-desser"> De-esser Match</label>
+          <label><input type="checkbox" id="s-ref-saturation"> Saturation Match</label>
+        </div>
+        <div class="ref-config-group">
+          <label>Dyn Margin: <input type="range" id="s-ref-dynmargin" min="0" max="6" value="2" step="0.5"> <span id="v-ref-dynmargin">2</span> dB</label>
+          <label>Stereo Blend: <input type="range" id="s-ref-stereoblend" min="0" max="100" value="50"> <span id="v-ref-stereoblend">50</span>%</label>
+        </div>
+        <div class="ref-config-group">
+          <label><input type="checkbox" id="s-ref-match-crest"> Crest Factor Match</label>
+          <label>Crest Amount: <input type="range" id="s-ref-crest-amount" min="0" max="100" value="50"> <span id="v-ref-crest-amount">50</span>%</label>
+          <label><input type="checkbox" id="s-ref-spectral-dynamics"> Spectral Dynamics</label>
+          <label>Spectral Amount: <input type="range" id="s-ref-spectral-dyn-amount" min="0" max="100" value="50"> <span id="v-ref-spectral-dyn-amount">50</span>%</label>
+          <label>Spectral Bins: <input type="range" id="s-ref-spectral-dyn-bins" min="4" max="64" value="16"> <span id="v-ref-spectral-dyn-bins">16</span></label>
+        </div>
+        <div class="ref-config-group">
+          <label><input type="checkbox" id="s-ref-parallel-comp"> Parallel Comp</label>
+          <label>Mix: <input type="range" id="s-ref-parallel-mix" min="0" max="100" value="30"> <span id="v-ref-parallel-mix">30</span>%</label>
+          <label>Thr: <input type="range" id="s-ref-parallel-thr" min="-48" max="0" value="-20" step="0.5"> <span id="v-ref-parallel-thr">-20</span> dB</label>
+          <label>Ratio: <input type="range" id="s-ref-parallel-ratio" min="1" max="20" value="4" step="0.5"> <span id="v-ref-parallel-ratio">4</span>:1</label>
+          <label>Makeup: <input type="range" id="s-ref-parallel-makeup" min="0" max="24" value="0" step="0.5"> <span id="v-ref-parallel-makeup">0</span> dB</label>
+        </div>
+        <div class="ref-config-group">
+          <label><input type="checkbox" id="s-ref-mb-sat"> MB Saturation</label>
+          <label>Sat Mix: <input type="range" id="s-ref-mb-sat-mix" min="0" max="100" value="20"> <span id="v-ref-mb-sat-mix">20</span>%</label>
+          <label><input type="checkbox" id="s-ref-two-stage-lim"> Two-Stage Limiter</label>
+          <label>Gentle Ceil: <input type="range" id="s-ref-gentle-ceil" min="-6" max="0" value="-1" step="0.1"> <span id="v-ref-gentle-ceil">-1</span> dB</label>
+          <label>Gentle Rel: <input type="range" id="s-ref-gentle-rel" min="10" max="500" value="100"> <span id="v-ref-gentle-rel">100</span> ms</label>
+        </div>
+        <div class="ref-config-group">
+          <label>Max LUFS: <input type="range" id="s-ref-max-lufs" min="-18" max="-6" value="-14" step="0.5"> <span id="v-ref-max-lufs">-14</span></label>
+        </div>
+        <div id="refEqCurveWrap" class="ref-eq-curve-wrap"><canvas id="refEqCurveCanvas"></canvas></div>
+        <div class="ref-preview-metrics">
+          <span>LUFS: <span id="rp-lufs">—</span></span>
+          <span>Peak: <span id="rp-peak">—</span></span>
+          <span>RMS: <span id="rp-rms">—</span></span>
+          <span>Corr: <span id="rp-corr">—</span></span>
+        </div>
+      </section>
+
+      <!-- Reference Library Button -->
+      <section class="ref-lib-section">
+        <button id="btnOpenRefLib" class="btn btn-secondary">📚 Biblioteca de Referencias</button>
+      </section>
+    </aside>
+  </main>
+
+  <!-- ═══════════════ AI PANEL OVERLAY (creado dinámicamente) ═══════════════ -->
+  <button id="aiFab" class="ai-fab" title="Abrir asistente IA">🤖</button>
+
+  <!-- ═══════════════ REFERENCE LIBRARY MODAL (creado dinámicamente) ═══════════════ -->
+
+  <!-- ═══════════════ HIDDEN TECHNICAL INPUTS ═══════════════ -->
+  <div id="studio-technical-inputs" style="display:none">
+    <input type="hidden" id="s-ingain" value="0">
+    <input type="hidden" id="s-thresh" value="-18">
+    <input type="hidden" id="s-ratio" value="4">
+    <input type="hidden" id="s-cattack" value="10">
+    <input type="hidden" id="s-crelease" value="100">
+    <input type="hidden" id="s-cmakeup" value="0">
+    <input type="hidden" id="s-width" value="1">
+    <input type="hidden" id="s-ceiling" value="-1.0">
+    <input type="hidden" id="s-lrelease" value="100">
+    <input type="hidden" id="s-eq1freq" value="1000">
+    <input type="hidden" id="s-eq1gain" value="0">
+    <input type="hidden" id="s-eq1q" value="1">
+    <input type="hidden" id="s-eq2freq" value="4000">
+    <input type="hidden" id="s-eq2gain" value="0">
+    <input type="hidden" id="s-eq2q" value="1">
+    <input type="hidden" id="s-air" value="0">
+    <input type="hidden" id="s-lowshelf" value="0">
+    <input type="hidden" id="s-dyneq-freq" value="2500">
+    <input type="hidden" id="s-dyneq-q" value="1">
+    <input type="hidden" id="s-dyneq-thresh" value="-20">
+    <input type="hidden" id="s-dyneq-ratio" value="4">
+    <input type="hidden" id="s-dyneq-attack" value="10">
+    <input type="hidden" id="s-dyneq-release" value="100">
+    <input type="hidden" id="s-mb-lowx" value="200">
+    <input type="hidden" id="s-mb-highx" value="4000">
+    <input type="hidden" id="s-mb-low-th" value="-20">
+    <input type="hidden" id="s-mb-low-ratio" value="4">
+    <input type="hidden" id="s-mb-low-att" value="10">
+    <input type="hidden" id="s-mb-low-rel" value="100">
+    <input type="hidden" id="s-mb-low-mu" value="0">
+    <input type="hidden" id="s-mb-mid-th" value="-20">
+    <input type="hidden" id="s-mb-mid-ratio" value="4">
+    <input type="hidden" id="s-mb-mid-att" value="10">
+    <input type="hidden" id="s-mb-mid-rel" value="100">
+    <input type="hidden" id="s-mb-mid-mu" value="0">
+    <input type="hidden" id="s-mb-high-th" value="-20">
+    <input type="hidden" id="s-mb-high-ratio" value="4">
+    <input type="hidden" id="s-mb-high-att" value="10">
+    <input type="hidden" id="s-mb-high-rel" value="100">
+    <input type="hidden" id="s-mb-high-mu" value="0">
+    <input type="hidden" id="mb-bypass" value="0">
+    <input type="hidden" id="s-tatt" value="0">
+    <input type="hidden" id="s-tsus" value="0">
+    <input type="hidden" id="s-glue-thresh" value="-20">
+    <input type="hidden" id="s-glue-ratio" value="4">
+    <input type="hidden" id="s-glue-attack" value="10">
+    <input type="hidden" id="s-glue-release" value="100">
+    <input type="hidden" id="s-glue-makeup" value="0">
+    <input type="hidden" id="s-glue-bypass" value="0">
+    <input type="hidden" id="s-mscomp-mid-thresh" value="-20">
+    <input type="hidden" id="s-mscomp-mid-ratio" value="4">
+    <input type="hidden" id="s-mscomp-side-thresh" value="-20">
+    <input type="hidden" id="s-mscomp-side-ratio" value="4">
+    <input type="hidden" id="s-mscomp-side-attack" value="10">
+    <input type="hidden" id="s-mscomp-side-release" value="100">
+    <input type="hidden" id="s-mscomp-bypass" value="0">
+    <input type="hidden" id="s-satdrive" value="0">
+    <input type="hidden" id="s-satmix" value="0">
+    <input type="hidden" id="s-mb-sw-low" value="1">
+    <input type="hidden" id="s-mb-sw-mid" value="1">
+    <input type="hidden" id="s-mb-sw-high" value="1">
+    <input type="hidden" id="mb-stereo-bypass" value="0">
+    <input type="hidden" id="s-clip-ceiling" value="0">
+    <input type="hidden" id="s-clip-drive" value="0">
+    <input type="hidden" id="s-clip-bypass" value="0">
+    <!-- EQ Bands 3-6 -->
+    <input type="hidden" id="s-eq3freq" value="800">
+    <input type="hidden" id="s-eq3gain" value="0">
+    <input type="hidden" id="s-eq3q" value="1">
+    <input type="hidden" id="s-eq4freq" value="2500">
+    <input type="hidden" id="s-eq4gain" value="0">
+    <input type="hidden" id="s-eq4q" value="1">
+    <input type="hidden" id="s-eq5freq" value="5000">
+    <input type="hidden" id="s-eq5gain" value="0">
+    <input type="hidden" id="s-eq5q" value="1">
+    <input type="hidden" id="s-eq6freq" value="10000">
+    <input type="hidden" id="s-eq6gain" value="0">
+    <input type="hidden" id="s-eq6q" value="1">
+    <!-- Peak / LUFS Target / Comp Link / Oversample -->
+    <input type="hidden" id="s-peak" value="-0.3">
+    <input type="hidden" id="s-uselufs" value="1">
+    <input type="hidden" id="s-lufstarget" value="-14">
+    <input type="hidden" id="s-comp-link" value="1">
+    <input type="hidden" id="s-oversample" value="1">
+    <!-- Glue PDR -->
+    <input type="hidden" id="s-glue-pdr" value="0">
+    <input type="hidden" id="s-glue-pdr-hold" value="0">
+    <!-- HP / Shelf -->
+    <input type="hidden" id="s-hp" value="30">
+    <input type="hidden" id="s-shelf-freq" value="8000">
+    <input type="hidden" id="s-lowshelf-freq" value="100">
+    <!-- Comp PDR -->
+    <input type="hidden" id="s-comp-pdr" value="0">
+    <input type="hidden" id="s-comp-pdr-hold" value="0">
+    <!-- MB / MS PDR -->
+    <input type="hidden" id="s-mb-pdr" value="0">
+    <input type="hidden" id="s-mb-pdr-hold" value="0">
+    <input type="hidden" id="s-mscomp-pdr" value="0">
+    <input type="hidden" id="s-mscomp-pdr-hold" value="0">
+    <!-- MB Stereo Width -->
+    <input type="hidden" id="s-mb-sw-lowx" value="200">
+    <input type="hidden" id="s-mb-sw-highx" value="4000">
+    <!-- Sat Mode / Master-Side Gain -->
+    <input type="hidden" id="s-satmode" value="soft">
+    <input type="hidden" id="s-mgain" value="0">
+    <input type="hidden" id="s-sgain" value="0">
+    <!-- Enhancer / Haas / Bass Mono -->
+    <input type="hidden" id="s-enhancer" value="0">
+    <input type="hidden" id="s-haas" value="0">
+    <input type="hidden" id="s-bassmono" value="80">
+    <!-- Reverb -->
+    <input type="hidden" id="s-rsize" value="0.5">
+    <input type="hidden" id="s-rwet" value="0">
+    <!-- Dynamic EQ Bypass + MaxRed -->
+    <input type="hidden" id="s-dyneq-bypass" value="0">
+    <input type="hidden" id="s-dyneq-maxred" value="12">
+    <!-- Resonance Suppressor -->
+    <input type="hidden" id="s-reso-bypass" value="0">
+    <input type="hidden" id="s-reso-freq" value="3000">
+    <input type="hidden" id="s-reso-q" value="2">
+    <input type="hidden" id="s-reso-thresh" value="-20">
+    <input type="hidden" id="s-reso-ratio" value="4">
+    <input type="hidden" id="s-reso-attack" value="10">
+    <input type="hidden" id="s-reso-release" value="100">
+    <input type="hidden" id="s-reso-maxred" value="12">
+    <!-- Mono / EQ Mode / LP Taps -->
+    <input type="hidden" id="s-mono-freq" value="150">
+    <input type="hidden" id="s-mono-amount" value="0">
+    <input type="hidden" id="s-eq-mode" value="parametric">
+    <input type="hidden" id="s-lp-taps" value="64">
+    <!-- Tonal Balance -->
+    <input type="hidden" id="s-tonalbal-bypass" value="0">
+    <input type="hidden" id="s-tonalbal-amount" value="0">
+    <input type="hidden" id="s-tonalbal-boost" value="3">
+    <input type="hidden" id="s-tonalbal-cut" value="3">
+    <input type="hidden" id="s-tonalbal-bands" value="3">
+    <!-- Parallel Compression -->
+    <input type="hidden" id="parallelBypass" value="0">
+    <input type="hidden" id="parallelMix" value="30">
+    <input type="hidden" id="parallelThresh" value="-20">
+    <input type="hidden" id="parallelRatio" value="4">
+    <input type="hidden" id="parallelAttack" value="10">
+    <input type="hidden" id="parallelRelease" value="100">
+    <!-- Clip -->
+    <input type="hidden" id="s-clip-mode" value="soft">
+    <!-- Linear Phase -->
+    <input type="hidden" id="s-lp-bypass" value="0">
+    <input type="hidden" id="s-lp-cutoff" value="20000">
+    <!-- M/S EQ -->
+    <input type="hidden" id="s-mseq-bypass" value="0">
+    <input type="hidden" id="s-mseq-mid-freq" value="1000">
+    <input type="hidden" id="s-mseq-side-freq" value="3000">
+    <!-- Noise Reduction -->
+    <input type="hidden" id="s-nr-bypass" value="0">
+    <input type="hidden" id="s-nr-strength" value="0">
+    <input type="hidden" id="s-nr-noise-sample-sec" value="1">
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
