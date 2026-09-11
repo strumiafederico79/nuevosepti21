@@ -1,0 +1,66 @@
+/* ══════════════════════════════════════════════════════════════
+   shared.css — Estilos compartidos entre center-console y right-rack
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Studio GR Panel ── */
+.studio-gr-panel .gr-bands { display: flex; flex-direction: column; gap: 0.3rem; }
+.gr-band { display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; }
+.gr-band .gr-label { width: 45px; text-align: right; color: var(--text-muted); flex-shrink: 0; }
+.gr-band .gr-bar-wrap { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+.gr-band .gr-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 3px;
+  transition: width 0.15s ease;
+  width: 0%;
+  box-shadow: var(--meter-glow);
+}
+.gr-band .gr-value { width: 55px; font-family: var(--mono); font-size: 0.65rem; }
+.studio-gr-note { font-size: 0.65rem; color: var(--text-muted); margin-top: 0.3rem; font-style: italic; }
+
+/* ── A/B Controls ── */
+.ab-controls { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.5rem; flex-wrap: wrap; }
+.ab-toggle {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 600;
+  transition: all .15s;
+}
+.ab-toggle:hover { background: var(--accent); color: #fff; box-shadow: 0 0 10px var(--glow-color); }
+.ab-toggle[aria-pressed="true"] { background: var(--accent); color: #fff; box-shadow: 0 0 12px var(--glow-color); }
+.ab-btn { padding: 0.2rem 0.5rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface2); color: var(--text-muted); cursor: pointer; font-size: 0.65rem; transition: all .15s; }
+.ab-btn:hover { background: var(--surface3); }
+.ab-btn.active { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 6px var(--glow-color); }
+.ab-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+#consoleABReadout { font-family: var(--mono); font-size: 0.7rem; color: var(--accent); }
+
+/* ── Stage Bypass Cards ── */
+.stage-cards { display: flex; gap: 0.4rem; padding: 0.4rem 0.5rem; flex-wrap: wrap; }
+.lg-stage-card {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface2);
+  cursor: pointer;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s;
+}
+.lg-stage-card:hover { background: var(--surface3); border-color: var(--accent); }
+.lg-stage-card em { font-size: 0.6rem; color: var(--green); font-style: normal; font-weight: 600; }
+.lg-stage-card:not(.bypassed) {
+  border-color: var(--green);
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.2);
+}
+.lg-stage-card.bypassed {
+  border-color: var(--red);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
+}
+.lg-stage-card.bypassed em { color: var(--red); }

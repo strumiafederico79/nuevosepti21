@@ -1,0 +1,178 @@
+/* ══════════════════════════════════════════════════════════════
+   theme.css — 5 temas visuales
+   Cada tema define 21 variables: 13 colores + 8 efectos
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Keyframes compartidos ── */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes border-glow {
+  0%, 100% { border-color: var(--accent); }
+  50% { border-color: var(--accent2); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Tema 1: DARK — Studio Profesional
+   Rack de estudio, dorado cálido, sin glass/glow
+   ══════════════════════════════════════════════════════════════ */
+[data-theme="dark"] {
+  --bg: #0d0d0d;
+  --surface: #1a1a1a;
+  --surface1: #222222;
+  --surface2: #252525;
+  --surface3: #333333;
+  --border: #333333;
+  --text: #e8e8e8;
+  --text-muted: #888888;
+  --accent: #d4a843;
+  --accent2: #c49a38;
+  --red: #cc3344;
+  --yellow: #d4a843;
+  --green: #44aa66;
+  --glow-color: rgba(212, 168, 67, 0.25);
+  --glow-intensity: 0.2;
+  --glass-bg: rgba(26, 26, 26, 0.9);
+  --glass-border: rgba(212, 168, 67, 0.08);
+  --glass-blur: 0px;
+  --gradient-start: #d4a843;
+  --gradient-end: #c49a38;
+  --meter-glow: 0 0 6px rgba(68, 170, 102, 0.15);
+}
+
+[data-theme="dark"] .brand-name { text-shadow: 0 0 8px rgba(212, 168, 67, 0.4); }
+
+/* ══════════════════════════════════════════════════════════════
+   Tema 2: NEON — Cyberpunk Control Room
+   Cyan + magenta neón, glow intenso, bloom
+   ══════════════════════════════════════════════════════════════ */
+[data-theme="neon"] {
+  --bg: #050508;
+  --surface: #0a0a14;
+  --surface1: #0f0f1e;
+  --surface2: #12122a;
+  --surface3: #1a1a3a;
+  --border: #1a1a4a;
+  --text: #e0e0ff;
+  --text-muted: #6666aa;
+  --accent: #00f0ff;
+  --accent2: #ff00aa;
+  --red: #ff2255;
+  --yellow: #ffee00;
+  --green: #00ff88;
+  --glow-color: rgba(0, 240, 255, 0.4);
+  --glow-intensity: 0.6;
+  --glass-bg: rgba(10, 10, 20, 0.65);
+  --glass-border: rgba(0, 240, 255, 0.2);
+  --glass-blur: 10px;
+  --gradient-start: #00f0ff;
+  --gradient-end: #ff00aa;
+  --meter-glow: 0 0 15px rgba(0, 240, 255, 0.4);
+}
+
+[data-theme="neon"] .brand-name { text-shadow: 0 0 12px rgba(0, 240, 255, 0.6); }
+[data-theme="neon"] #btn-master,
+[data-theme="neon"] #btn-auto-master { box-shadow: 0 0 20px rgba(0, 240, 255, 0.3); }
+
+/* ══════════════════════════════════════════════════════════════
+   Tema 3: AURORA — Glass Aurora
+   Violeta + teal, glassmorphism, backdrop-filter
+   ══════════════════════════════════════════════════════════════ */
+[data-theme="aurora"] {
+  --bg: #0a0a1a;
+  --surface: rgba(20, 20, 40, 0.6);
+  --surface1: rgba(30, 30, 50, 0.6);
+  --surface2: rgba(40, 40, 60, 0.5);
+  --surface3: rgba(50, 50, 70, 0.5);
+  --border: rgba(168, 85, 247, 0.15);
+  --text: #f0f0ff;
+  --text-muted: #9090b0;
+  --accent: #a855f7;
+  --accent2: #2dd4bf;
+  --red: #f43f5e;
+  --yellow: #fbbf24;
+  --green: #34d399;
+  --glow-color: rgba(168, 85, 247, 0.3);
+  --glow-intensity: 0.4;
+  --glass-bg: rgba(20, 20, 40, 0.45);
+  --glass-border: rgba(168, 85, 247, 0.2);
+  --glass-blur: 20px;
+  --gradient-start: #a855f7;
+  --gradient-end: #2dd4bf;
+  --meter-glow: 0 0 12px rgba(45, 212, 191, 0.3);
+}
+
+[data-theme="aurora"] .brand-name {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Tema 4: LUXE — Mono Luxe
+   Ultra-minimal, negro absoluto, un solo azul
+   ══════════════════════════════════════════════════════════════ */
+[data-theme="luxe"] {
+  --bg: #000000;
+  --surface: #0a0a0a;
+  --surface1: #111111;
+  --surface2: #161616;
+  --surface3: #222222;
+  --border: #1a1a1a;
+  --text: #ffffff;
+  --text-muted: #555555;
+  --accent: #3b82f6;
+  --accent2: #3b82f6;
+  --red: #ef4444;
+  --yellow: #eab308;
+  --green: #22c55e;
+  --glow-color: rgba(59, 130, 246, 0.2);
+  --glow-intensity: 0.15;
+  --glass-bg: rgba(0, 0, 0, 0.95);
+  --glass-border: rgba(59, 130, 246, 0.08);
+  --glass-blur: 0px;
+  --gradient-start: #3b82f6;
+  --gradient-end: #3b82f6;
+  --meter-glow: none;
+}
+
+[data-theme="luxe"] .brand-name { text-shadow: 0 0 6px rgba(59, 130, 246, 0.3); }
+
+/* ══════════════════════════════════════════════════════════════
+   Tema 5: RETRO — Retro VU
+   Vintage 70s, naranja cálido, textura metal
+   ══════════════════════════════════════════════════════════════ */
+[data-theme="retro"] {
+  --bg: #0e0c0a;
+  --surface: #1c1a17;
+  --surface1: #252219;
+  --surface2: #2a261f;
+  --surface3: #35302a;
+  --border: #8b7355;
+  --text: #f5f0e0;
+  --text-muted: #9a8e7a;
+  --accent: #e8913a;
+  --accent2: #cc7a2e;
+  --red: #cc4433;
+  --yellow: #e8913a;
+  --green: #55aa55;
+  --glow-color: rgba(232, 145, 58, 0.25);
+  --glow-intensity: 0.25;
+  --glass-bg: rgba(28, 26, 23, 0.9);
+  --glass-border: rgba(139, 115, 85, 0.15);
+  --glass-blur: 0px;
+  --gradient-start: #e8913a;
+  --gradient-end: #cc7a2e;
+  --meter-glow: 0 0 6px rgba(85, 170, 85, 0.15);
+}
+
+[data-theme="retro"] .brand-name { text-shadow: 0 0 8px rgba(232, 145, 58, 0.4); }
