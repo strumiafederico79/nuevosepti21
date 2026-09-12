@@ -41,11 +41,10 @@
   padding: 0.3rem 0.5rem 0.3rem 0.8rem;
   cursor: pointer;
   font-size: 0.7rem;
-  transition: background .12s, box-shadow .15s;
-  border-left: 2px solid transparent;
+  transition: background .12s;
 }
-.dsp-plugin-row:hover { background: var(--surface2); border-left-color: var(--accent); }
-.dsp-plugin-row.active { background: var(--surface3); border-left-color: var(--accent); box-shadow: inset 0 0 12px var(--glow-color); }
+.dsp-plugin-row:hover { background: var(--surface2); }
+.dsp-plugin-row.active { background: var(--surface3); }
 .dsp-plugin-row input[type="checkbox"] { accent-color: var(--accent); }
 
 .dsp-plugin-led {
@@ -54,13 +53,9 @@
   border-radius: 50%;
   flex-shrink: 0;
   opacity: 0.4;
-  transition: opacity .15s, box-shadow .2s;
+  transition: opacity .15s, box-shadow .15s;
 }
-.dsp-plugin-row.active .dsp-plugin-led {
-  opacity: 1;
-  box-shadow: 0 0 8px currentColor, 0 0 16px currentColor;
-  animation: pulse-glow 2s ease-in-out infinite;
-}
+.dsp-plugin-row.active .dsp-plugin-led { opacity: 1; box-shadow: 0 0 6px currentColor; }
 
 .dsp-plugin-name { flex: 1; }
 
@@ -74,3 +69,44 @@
   padding: 0 0.2rem;
   line-height: 1.4;
 }
+
+/* ── Output Section ── */
+#output-section { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--border); }
+#output-section > .section-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.output-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0.5rem;
+}
+.output-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.output-label select,
+.output-label input[type="number"] {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 4px;
+  font-size: 0.7rem;
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  accent-color: var(--accent);
+}
+.output-label input[type="number"] { width: 50px; flex: 0 0 50px; }
+.output-unit { font-size: 0.6rem; color: var(--text-muted); }
+.checkbox-label input { accent-color: var(--accent); }

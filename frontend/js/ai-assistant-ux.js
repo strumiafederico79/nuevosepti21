@@ -2,6 +2,7 @@
 import { apiFetch, apiBase } from './api.js';
 import * as state from './state.js';
 import { makeResizable } from './make-resizable.js';
+import { applyOverridesToUI } from './params.js';
 
 const AI_SUGGESTIONS = [
   '¿Cómo suena esto?',
@@ -37,6 +38,19 @@ function buildPanel() {
     </div>
   `;
   document.body.appendChild(panel);
+
+  document.getElementById('aiClose')?.addEventListener('click', () => {
+    panelOpen = false;
+    panel.classList.add('hidden');
+  });
+  document.getElementById('aiSend')?.addEventListener('click', sendMessage);
+  document.getElementById('aiInput')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+  document.getElementById('aiInput')?.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 96) + 'px';
+  });
 
   makeResizable(document.getElementById('aiPanelResizeHandle'), {
     axis: 'x', invert: true,
@@ -196,16 +210,13 @@ export function init() {
   init.done = true;
 
   document.getElementById('aiFab')?.addEventListener('click', togglePanel);
-  document.getElementById('aiClose')?.addEventListener('click', () => {
-    panelOpen = false;
-    document.getElementById('aiPanel')?.classList.add('hidden');
-  });
-  document.getElementById('aiSend')?.addEventListener('click', sendMessage);
-  document.getElementById('aiInput')?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  });
-  document.getElementById('aiInput')?.addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = Math.min(this.scrollHeight, 96) + 'px';
+
+  window.addEventListener('lgmdm:ai-apply-suggestion', (e) => {
+    const params = e.detail?.params;
+    if (!params || typeof params !== 'object') return;
+    applyOverridesToUI(params);
+    state.set('suggestedParams', params);
+    emit('analysis-updated', params);
+    emit('param-change', { source: 'ai' });
   });
 }

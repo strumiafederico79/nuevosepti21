@@ -5,36 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MASTER — Intelligent Mastering Console</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/header.css">
-  <link rel="stylesheet" href="css/left-panel.css">
-  <link rel="stylesheet" href="css/shared.css">
-  <link rel="stylesheet" href="css/center-console.css">
-  <link rel="stylesheet" href="css/right-rack.css">
-  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/base.css?v=1.5">
+  <link rel="stylesheet" href="css/theme-tokens.css?v=1.5">
+  <link rel="stylesheet" href="css/header.css?v=1.5">
+  <link rel="stylesheet" href="css/left-panel.css?v=1.5">
+  <link rel="stylesheet" href="css/shared.css?v=1.5">
+  <link rel="stylesheet" href="css/center-console.css?v=1.5">
+  <link rel="stylesheet" href="css/right-rack.css?v=1.5">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap">
+  <link rel="stylesheet" href="css/theme-picker.css?v=1.5">
+  <link rel="stylesheet" href="css/library-picker.css?v=1.5">
+  <style>
+    #buildTag { position: fixed; bottom: 10px; right: 10px; padding: 4px 8px; font-family: var(--mono); font-size: 11px; color: var(--bg); background: var(--accent); border-radius: 4px; pointer-events: none; z-index: 99999; letter-spacing: .03em; box-shadow: var(--glow) }
+  </style>
 </head>
 <body>
+  <div id="buildTag">v1.5</div>
   <!-- ═══════════════ HEADER ═══════════════ -->
   <header id="app-header">
     <div id="header-file" class="header-section header-file-section">
       <input type="file" id="file-input" accept="audio/*" hidden>
       <button id="btn-upload" title="Subir archivo">📂</button>
+      <button id="btn-library" title="Elegir de la librería del servidor">📚</button>
       <div class="header-track-info">
         <span id="info-name" class="header-track-name">Sin archivo</span>
         <span id="headerTrackMeta" class="header-track-meta"></span>
       </div>
-    </div>
-    <div id="header-format" class="header-section">
-      <select id="s-format" title="Formato de salida">
-        <option value="wav">WAV</option>
-        <option value="flac">FLAC</option>
-        <option value="mp3">MP3</option>
-      </select>
-      <select id="s-bitdepth" title="Bit depth">
-        <option value="16">16</option>
-        <option value="24" selected>24</option>
-        <option value="32">32f</option>
-      </select>
     </div>
     <div id="header-dashboard" class="header-section">
       <span class="dash-label" title="CPU">CPU <span id="cpu-usage">--</span>%</span>
@@ -52,13 +50,14 @@
       <span class="brand-version">v1.0</span>
     </div>
     <div id="header-theme" class="header-section">
-      <select id="theme-select" title="Seleccionar tema">
-        <option value="dark">Studio Dark</option>
-        <option value="neon">Neon Console</option>
-        <option value="aurora">Glass Aurora</option>
-        <option value="luxe">Mono Luxe</option>
-        <option value="retro">Retro VU</option>
-      </select>
+      <div id="theme-swatches" role="radiogroup" aria-label="Tema visual">
+        <button type="button" class="swatch swatch-studio-dark" data-theme-pick="studio-dark"     title="Studio Dark"     aria-label="Studio Dark"></button>
+        <button type="button" class="swatch swatch-velvet-wired" data-theme-pick="velvet-wired" title="Velvet Wired" aria-label="Velvet Wired"></button>
+        <button type="button" class="swatch swatch-carbon-gold"   data-theme-pick="carbon-gold"    title="Carbon Gold"    aria-label="Carbon Gold"></button>
+        <button type="button" class="swatch swatch-slate-arctic"  data-theme-pick="slate-arctic"   title="Slate Arctic"   aria-label="Slate Arctic"></button>
+        <button type="button" class="swatch swatch-sunset-mastering" data-theme-pick="sunset-mastering" title="Sunset Mastering" aria-label="Sunset Mastering"></button>
+      </div>
+      <span id="theme-name" class="theme-name-label" aria-live="polite">Studio Dark</span>
     </div>
     <div id="header-user" class="header-section">
       <span id="username-display">—</span>
@@ -81,6 +80,33 @@
       <section id="dsp-list-section">
         <label class="section-title">DSP Disponibles</label>
         <div id="dsp-plugins-mount"></div>
+      </section>
+      <section id="output-section">
+        <label class="section-title">Salida</label>
+        <div class="output-controls">
+          <label class="output-label">Formato
+            <select id="s-format" title="Formato de salida">
+              <option value="wav">WAV</option>
+              <option value="flac">FLAC</option>
+              <option value="mp3">MP3</option>
+            </select>
+          </label>
+          <label class="output-label">Bit Depth
+            <select id="s-bitdepth" title="Bit depth">
+              <option value="16">16</option>
+              <option value="24" selected>24</option>
+              <option value="32">32f</option>
+            </select>
+          </label>
+          <label class="output-label checkbox-label">
+            <input type="checkbox" id="s-uselufs" checked>
+            Normalización LUFS
+          </label>
+          <label class="output-label">Target
+            <input type="number" id="s-lufstarget" value="-14" min="-24" max="-6" step="0.5">
+            <span class="output-unit">LUFS</span>
+          </label>
+        </div>
       </section>
     </aside>
 
@@ -121,6 +147,13 @@
       </div>
 
       <div class="console-resize-handle" id="spectrumResizeHandle" tabindex="0" role="separator" aria-label="Redimensionar spectrum"></div>
+
+      <!-- ═══ ROW 2: Waveform (debajo del spectrum) ═══ -->
+      <div id="waveform-wrap" class="console-row">
+        <canvas id="lgmdmWaveformCanvas"></canvas>
+      </div>
+
+      <div class="console-resize-handle" id="waveformResizeHandle" tabindex="0" role="separator" aria-label="Redimensionar waveform"></div>
 
       <!-- ═══ Meters Panel ═══ -->
       <div class="console-meters-panel">
@@ -192,10 +225,15 @@
 
       <!-- ═══ Console Meter Sync Readouts (hidden, source of truth) ═══ -->
       <div style="display:none">
+        <span id="meterPeakReadout2"></span>
         <span id="consolePeak"></span>
+        <span id="meterLufsReadout2"></span>
         <span id="consoleLufs"></span>
+        <span id="meterTruePeakReadout2"></span>
         <span id="consoleTruePeak"></span>
+        <span id="meterRmsReadout2"></span>
         <span id="consoleRms"></span>
+        <span id="stereoMeterReadout2"></span>
         <span id="consoleCorr"></span>
       </div>
 
@@ -204,14 +242,24 @@
         <!-- Left: Preview checkbox + Play/Stop -->
         <div class="controls-left">
           <label id="preview-toggle-wrap">
-            <input type="checkbox" id="s-livepreview">
+            <input type="checkbox" id="s-livepreview" checked>
             <span>Preview en vivo</span>
+          </label>
+          <label title="Segundos desde donde arranca el preview (default 15)">
+            <span style="opacity:.6;font-size:11px;margin-right:4px">Desde:</span>
+            <input type="number" id="s-preview-from" min="0" step="1" value="15"
+                   style="width:54px;padding:2px 6px;background:#111;color:#eee;border:1px solid #333;border-radius:3px;font-size:12px">
+            <span style="opacity:.6;font-size:11px;margin-left:2px">s</span>
           </label>
           <div class="playback-inline">
             <button id="previewPlayBtn" disabled>▶</button>
             <button id="previewStopBtn" disabled>■</button>
           </div>
           <div id="previewAudioWrap"></div>
+          <div id="previewProgress" class="preview-progress" hidden>
+            <div class="preview-progress-track"><div class="preview-progress-fill" id="previewProgressFill"></div></div>
+            <span class="preview-progress-text" id="previewProgressText"></span>
+          </div>
           <span id="consoleTime" class="time-display">00:00</span>
           <div id="consolePlayhead" class="playhead"></div>
           <span id="consoleDuration" class="time-display">00:00</span>
@@ -371,7 +419,7 @@
     <input type="hidden" id="s-crelease" value="100">
     <input type="hidden" id="s-cmakeup" value="0">
     <input type="hidden" id="s-width" value="1">
-    <input type="hidden" id="s-ceiling" value="0.891">
+    <input type="hidden" id="s-ceiling" value="-1.0">
     <input type="hidden" id="s-lrelease" value="100">
     <input type="hidden" id="s-eq1freq" value="1000">
     <input type="hidden" id="s-eq1gain" value="0">
@@ -404,7 +452,8 @@
     <input type="hidden" id="s-mb-high-att" value="10">
     <input type="hidden" id="s-mb-high-rel" value="100">
     <input type="hidden" id="s-mb-high-mu" value="0">
-    <input type="hidden" id="mb-bypass" value="0">
+    <input type="hidden" id="mb-bypass" value="1">
+    <input type="hidden" id="comp-bypass" value="1">
     <input type="hidden" id="s-tatt" value="0">
     <input type="hidden" id="s-tsus" value="0">
     <input type="hidden" id="s-glue-thresh" value="-20">
@@ -412,14 +461,14 @@
     <input type="hidden" id="s-glue-attack" value="10">
     <input type="hidden" id="s-glue-release" value="100">
     <input type="hidden" id="s-glue-makeup" value="0">
-    <input type="hidden" id="s-glue-bypass" value="0">
+    <input type="hidden" id="s-glue-bypass" value="1">
     <input type="hidden" id="s-mscomp-mid-thresh" value="-20">
     <input type="hidden" id="s-mscomp-mid-ratio" value="4">
     <input type="hidden" id="s-mscomp-side-thresh" value="-20">
     <input type="hidden" id="s-mscomp-side-ratio" value="4">
     <input type="hidden" id="s-mscomp-side-attack" value="10">
     <input type="hidden" id="s-mscomp-side-release" value="100">
-    <input type="hidden" id="s-mscomp-bypass" value="0">
+    <input type="hidden" id="s-mscomp-bypass" value="1">
     <input type="hidden" id="s-satdrive" value="0">
     <input type="hidden" id="s-satmix" value="0">
     <input type="hidden" id="s-mb-sw-low" value="1">
@@ -428,7 +477,7 @@
     <input type="hidden" id="mb-stereo-bypass" value="0">
     <input type="hidden" id="s-clip-ceiling" value="0">
     <input type="hidden" id="s-clip-drive" value="0">
-    <input type="hidden" id="s-clip-bypass" value="0">
+    <input type="hidden" id="s-clip-bypass" value="true">
     <!-- EQ Bands 3-6 -->
     <input type="hidden" id="s-eq3freq" value="800">
     <input type="hidden" id="s-eq3gain" value="0">
@@ -442,10 +491,8 @@
     <input type="hidden" id="s-eq6freq" value="10000">
     <input type="hidden" id="s-eq6gain" value="0">
     <input type="hidden" id="s-eq6q" value="1">
-    <!-- Peak / LUFS Target / Comp Link / Oversample -->
+    <!-- Peak / Comp Link / Oversample -->
     <input type="hidden" id="s-peak" value="-0.3">
-    <input type="hidden" id="s-uselufs" value="1">
-    <input type="hidden" id="s-lufstarget" value="-14">
     <input type="hidden" id="s-comp-link" value="1">
     <input type="hidden" id="s-oversample" value="1">
     <!-- Glue PDR -->
@@ -478,7 +525,7 @@
     <input type="hidden" id="s-rsize" value="0.5">
     <input type="hidden" id="s-rwet" value="0">
     <!-- Dynamic EQ Bypass + MaxRed -->
-    <input type="hidden" id="s-dyneq-bypass" value="0">
+    <input type="hidden" id="s-dyneq-bypass" value="1">
     <input type="hidden" id="s-dyneq-maxred" value="12">
     <!-- Resonance Suppressor -->
     <input type="hidden" id="s-reso-bypass" value="0">
@@ -522,6 +569,6 @@
     <input type="hidden" id="s-nr-noise-sample-sec" value="1">
   </div>
 
-  <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/main.js?v=1.5"></script>
 </body>
 </html>

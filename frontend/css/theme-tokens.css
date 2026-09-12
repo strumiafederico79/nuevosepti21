@@ -1,0 +1,165 @@
+/* theme-tokens.css — paletas para los 5 temas visuales de MASTER/LGMDM.
+   Se aplica vía [data-theme="..."] en el elemento <html>.
+   Mantiene todos los tokens ya usados por base.css (--bg, --surface*, --accent, etc.)
+   más extras (--accent-soft, --glow, --meter-grad) usados por componentes nuevos. */
+
+:root {
+  /* Defaults razonables si JS aún no inyectó data-theme */
+  color-scheme: dark;
+}
+
+/* ════════════════════════════════════════════════════════
+   1) STUDIO DARK — default flat-style pro
+   Inspirado en Logic/Ableton suite dark mode. Bajo contraste,
+   alto confort visual para sesiones largas.
+   ════════════════════════════════════════════════════════ */
+[data-theme="studio-dark"] {
+  color-scheme: dark;
+  --bg: #0a0a0f;
+  --surface: #111118;
+  --surface1: #16161f;
+  --surface2: #1e1e28;
+  --surface3: #262632;
+  --border: #2a2a38;
+  --border-strong: #38384a;
+  --text: #e0e0ec;
+  --text-muted: #8888a0;
+  --accent: #7c5cff;
+  --accent2: #5ce0d8;
+  --accent-soft: rgba(124, 92, 255, .18);
+  --accent-soft-strong: rgba(124, 92, 255, .32);
+  --glow: 0 0 12px rgba(124, 92, 255, .35);
+  --red: #ff4466;
+  --yellow: #ffc844;
+  --green: #44ff88;
+  --gradient-master: linear-gradient(135deg, #7c5cff, #5ce0d8);
+  --meter-grad: linear-gradient(180deg, #44ff88, #ffc844 60%, #ff4466 95%);
+  --shadow-soft: 0 14px 30px rgba(0, 0, 0, .28);
+  --hairline: rgba(255, 255, 255, .04);
+}
+
+/* ════════════════════════════════════════════════════════
+   2) VELVET WIRED — polish retro-future, delicado
+   Warm-violet nocturno con orquídea suave + steel-blue dusty.
+   Reemplaza al antiguo "Neon Cyberpunk": paleta desaturada ~30%,
+   cero glow pasivo, hot indicators en mostaza/sage calmados.
+   ════════════════════════════════════════════════════════ */
+[data-theme="velvet-wired"] {
+  color-scheme: dark;
+  --bg: #161320;
+  --surface: #1e1929;
+  --surface1: #252033;
+  --surface2: #2c263d;
+  --surface3: #332d47;
+  --border: #322a44;
+  --border-strong: #463c5c;
+  --text: #e6dfe9;
+  --text-muted: #988aa8;
+  --accent: #b39dd4;       /* orchid suave (ex cyan eléctrico #00f0ff) */
+  --accent2: #88a8c0;      /* steel-blue dusty (ex magenta #ff2bd6) */
+  --accent-soft: rgba(179, 157, 212, .12);
+  --accent-soft-strong: rgba(179, 157, 212, .22);
+  --glow: none;            /* CERO glow pasivo */
+  --red: #c98ea4;          /* dusty rose, no neon red */
+  --yellow: #d8c478;       /* mostaza calmada */
+  --green: #95bea4;        /* sage muteado */
+  --gradient-master: linear-gradient(135deg, #b39dd4, #88a8c0);
+  --meter-grad: linear-gradient(180deg, #95bea4, #d8c478 55%, #c98ea4 90%);
+  --shadow-soft: 0 6px 16px rgba(20, 14, 32, .35);
+  --hairline: rgba(179, 157, 212, .10);
+}
+
+[data-theme="velvet-wired"] .brand-name {
+  font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  font-weight: 500;
+  letter-spacing: .04em;
+  text-shadow: none;       /* sin el glow heredado del theme.css viejo */
+}
+
+/* ════════════════════════════════════════════════════════
+   3) CARBON GOLD — hardware analógico Manley/Pultec
+   Negro cálido con dorados champagne y cobres. Estética high-end
+   mastering hardware.
+   ════════════════════════════════════════════════════════ */
+[data-theme="carbon-gold"] {
+  color-scheme: dark;
+  --bg: #08070a;
+  --surface: #100d10;
+  --surface1: #181318;
+  --surface2: #211921;
+  --surface3: #2b202b;
+  --border: #3a2c3a;
+  --border-strong: #52384a;
+  --text: #efe2cf;
+  --text-muted: #b8a892;
+  --accent: #d4a661;
+  --accent2: #a86935;
+  --accent-soft: rgba(212, 166, 97, .18);
+  --accent-soft-strong: rgba(212, 166, 97, .36);
+  --glow: 0 0 14px rgba(212, 166, 97, .35);
+  --red: #d96644;
+  --yellow: #f0c659;
+  --green: #7fb069;
+  --gradient-master: linear-gradient(135deg, #d4a661, #a86935);
+  --meter-grad: linear-gradient(180deg, #7fb069, #f0c659 60%, #d96644 95%);
+  --shadow-soft: 0 16px 32px rgba(168, 105, 53, .22);
+  --hairline: rgba(212, 166, 97, .14);
+}
+
+/* ════════════════════════════════════════════════════════
+   4) SLATE ARCTIC — light profesional para estudio diurno
+   Contraste WCAG AAA, tipografía IBM Plex, vibe SaaS moderno.
+   ════════════════════════════════════════════════════════ */
+[data-theme="slate-arctic"] {
+  color-scheme: light;
+  --bg: #f6f8fb;
+  --surface: #ffffff;
+  --surface1: #eef1f6;
+  --surface2: #e3e8f0;
+  --surface3: #d5dde9;
+  --border: #cdd5e2;
+  --border-strong: #aab5cb;
+  --text: #0e1219;
+  --text-muted: #586577;
+  --accent: #1a3a72;
+  --accent2: #107552;
+  --accent-soft: rgba(26, 58, 114, .12);
+  --accent-soft-strong: rgba(26, 58, 114, .26);
+  --glow: 0 0 12px rgba(26, 58, 114, .20);
+  --red: #b8243a;
+  --yellow: #b07a06;
+  --green: #107552;
+  --gradient-master: linear-gradient(135deg, #1a3a72, #107552);
+  --meter-grad: linear-gradient(180deg, #107552, #b07a06 60%, #b8243a 95%);
+  --shadow-soft: 0 8px 22px rgba(15, 23, 42, .10);
+  --hairline: rgba(15, 23, 42, .06);
+}
+
+/* ════════════════════════════════════════════════════════
+   5) SUNSET MASTERING — dusk-purple editorial
+   Revista mensual de producción musical. Personal, distinto.
+   ════════════════════════════════════════════════════════ */
+[data-theme="sunset-mastering"] {
+  color-scheme: dark;
+  --bg: #160a26;
+  --surface: #1f0e34;
+  --surface1: #2a1346;
+  --surface2: #361a5a;
+  --surface3: #43236e;
+  --border: #553085;
+  --border-strong: #6f44a8;
+  --text: #fbe9ee;
+  --text-muted: #c598c8;
+  --accent: #ff7752;
+  --accent2: #ff5fa2;
+  --accent-soft: rgba(255, 119, 82, .18);
+  --accent-soft-strong: rgba(255, 119, 82, .38);
+  --glow: 0 0 16px rgba(255, 119, 82, .50);
+  --red: #ff3366;
+  --yellow: #ffd75e;
+  --green: #74e09a;
+  --gradient-master: linear-gradient(135deg, #ff7752, #ff5fa2);
+  --meter-grad: linear-gradient(180deg, #74e09a, #ffd75e 55%, #ff7752 90%, #ff3366 100%);
+  --shadow-soft: 0 16px 36px rgba(255, 95, 162, .22);
+  --hairline: rgba(255, 119, 82, .12);
+}

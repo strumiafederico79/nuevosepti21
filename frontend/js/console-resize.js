@@ -4,11 +4,12 @@ import { makeResizable } from './make-resizable.js';
 
 const KEYS = {
   spectrum: 'lgmdm.console.spectrum-h',
+  waveform: 'lgmdm.console.waveform-h',
   meters:   'lgmdm.console.meters-h',
 };
-const DEFAULTS = { spectrum: 120, meters: null };
-const MIN = { spectrum: 60, meters: 80 };
-const MAX = { spectrum: 400, meters: 500 };
+const DEFAULTS = { spectrum: 120, waveform: 120, meters: null };
+const MIN = { spectrum: 60, waveform: 60, meters: 80 };
+const MAX = { spectrum: 400, waveform: 400, meters: 500 };
 
 function applyVar(name, val) {
   document.documentElement.style.setProperty(`--${name}`, val != null ? val + 'px' : 'auto');
@@ -26,7 +27,7 @@ export function init() {
 
   for (const [key, defaultVal] of Object.entries(DEFAULTS)) {
     const saved = storage.get(KEYS[key], null);
-    applyVar(key, saved ?? defaultVal);
+    applyVar(key + '-h', saved ?? defaultVal);
   }
 
   const spectrumHandle = document.getElementById('spectrumResizeHandle');
@@ -38,6 +39,18 @@ export function init() {
       min: MIN.spectrum,
       max: MAX.spectrum,
       onEnd: () => storage.set(KEYS.spectrum, getVar('spectrum-h')),
+    });
+  }
+
+  const waveformHandle = document.getElementById('waveformResizeHandle');
+  if (waveformHandle) {
+    makeResizable(waveformHandle, {
+      axis: 'y',
+      getSize: () => getVar('waveform-h') ?? 120,
+      setSize: (v) => applyVar('waveform-h', v),
+      min: MIN.waveform,
+      max: MAX.waveform,
+      onEnd: () => storage.set(KEYS.waveform, getVar('waveform-h')),
     });
   }
 

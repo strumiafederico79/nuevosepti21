@@ -61,13 +61,13 @@ export function handleError(err, fallback = 'Ocurrió un error inesperado.', opt
   return { message: normalizeError(err, fallback), type };
 }
 
-export function showProgress(message, total = null) {
+export function showProgress(message, totalOrText = null, pct = null) {
   const stage = document.getElementById('progress-stage');
   const fill = document.getElementById('progress-bar-fill');
   if (stage) stage.textContent = message;
   if (fill) {
-    const pct = Number(total);
-    if (Number.isFinite(pct)) fill.style.width = Math.round(pct) + '%';
+    const p = pct != null ? Number(pct) : Number(totalOrText);
+    if (Number.isFinite(p)) fill.style.width = Math.round(p) + '%';
     else if (message === 'done') fill.style.width = '100%';
     else if (message === 'error') fill.style.width = '0%';
   }

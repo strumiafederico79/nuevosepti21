@@ -1,0 +1,116 @@
+/* theme-picker.css — UI del selector de 5 swatches flotantes en el header.
+   Aplica estilos consistentes con cualquier tema activo. */
+
+#header-theme {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#theme-swatches {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  background: var(--surface1);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-soft);
+}
+
+.swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+  transition: transform .12s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+/* halo + scale on hover */
+.swatch:hover {
+  transform: scale(1.18);
+  border-color: rgba(255, 255, 255, .35);
+}
+[data-theme="slate-arctic"] .swatch:hover {
+  border-color: rgba(15, 23, 42, .35);
+}
+
+/* marcado del tema activo */
+.swatch[aria-checked="true"] {
+  border-color: var(--text);
+  box-shadow: var(--glow), 0 0 0 2px var(--accent-soft-strong);
+}
+
+/* ── Paletas de cada swatch (independientes del data-theme global) ─── */
+.swatch-studio-dark {
+  background: linear-gradient(135deg, #16161f 0% 50%, #7c5cff 50% 100%);
+}
+.swatch-velvet-wired {
+  background: linear-gradient(135deg, #161320 0% 50%, #b39dd4 50% 100%);
+}
+.swatch-carbon-gold {
+  background: linear-gradient(135deg, #100d10 0% 50%, #d4a661 50% 100%);
+}
+.swatch-slate-arctic {
+  background: linear-gradient(135deg, #eef1f6 0% 50%, #1a3a72 50% 100%);
+}
+.swatch-sunset-mastering {
+  background: linear-gradient(135deg, #160a26 0% 50%, #ff7752 50% 100%);
+}
+
+.theme-name-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  min-width: 90px;
+  user-select: none;
+}
+
+/* ════════════════════════════════════════════════════════
+   Adaptaciones por tema — branding y elementos que tenían
+   colores hardcoded que no respetaban temas previos.
+   ════════════════════════════════════════════════════════ */
+
+/* Logo / brand pasa a usar --accent del tema activo */
+.brand-name { color: var(--accent); }
+
+/* Subtle glow adaptable al accent */
+[data-theme="studio-dark"]       #btn-master,
+[data-theme="studio-dark"]       #btn-auto-master,
+[data-theme="velvet-wired"]      #btn-master,
+[data-theme="velvet-wired"]      #btn-auto-master,
+[data-theme="carbon-gold"]       #btn-master,
+[data-theme="carbon-gold"]       #btn-auto-master,
+[data-theme="slate-arctic"]      #btn-master,
+[data-theme="slate-arctic"]      #btn-auto-master,
+[data-theme="sunset-mastering"]  #btn-master,
+[data-theme="sunset-mastering"]  #btn-auto-master {
+  box-shadow: var(--glow);
+}
+
+/* Sunset Mastering merece glow extra fuerte en brand */
+[data-theme="sunset-mastering"]  .brand-name {
+  text-shadow: 0 0 8px var(--accent);
+  letter-spacing: 1.4px;
+}
+
+/* Slate Arctic usa --accent2 (verde) para indicadores activos;
+   invertí status bar meter colors heredados que usan --green puro */
+[data-theme="slate-arctic"] { --green: var(--accent2); }
+
+/* Studio Dark preserva la sombra original sutil que ya estaba */
+[data-theme="studio-dark"] #btn-master,
+[data-theme="studio-dark"] #btn-auto-master {
+  box-shadow: 0 0 12px var(--accent-soft);
+}
+
+/* Inputs focus ring adaptable al accent */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}

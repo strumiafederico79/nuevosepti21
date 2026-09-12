@@ -97,10 +97,15 @@ function setupMeters() {
       if (read && Number.isFinite(v)) read.textContent = `${v.toFixed(0)} dB`;
     });
 
-    const mb = m.mb_meters || {};
-    const compM = m.comp_meters || {};
-    const glueM = m.glue_meters || {};
-    const parM = m.parallel_meters || {};
+    // BUGFIX: el motor devuelve los medidores anidados en chain_meters.{mb,comp,
+    // glue,parallel} (nombres cortos), no sueltos en la raíz como *_meters —
+    // por eso nunca se movían. Se deja el nombre viejo como fallback por si
+    // algún caller antiguo todavía manda la forma plana.
+    const chain = m.chain_meters || m.chainMeters || {};
+    const mb = chain.mb || m.mb_meters || {};
+    const compM = chain.comp || m.comp_meters || {};
+    const glueM = chain.glue || m.glue_meters || {};
+    const parM = chain.parallel || m.parallel_meters || {};
     const hasGrData = [mb.low_gr_db, mb.mid_gr_db, mb.high_gr_db, compM.gr_db].some(Number.isFinite);
     const grSection = document.getElementById('mbGrSection');
     if (grSection && hasGrData) grSection.classList.remove('hidden-panel');
@@ -136,7 +141,7 @@ const previewTriggerIds = [
   's-eq5freq','s-eq5gain','s-eq5q','s-eq6freq','s-eq6gain','s-eq6q',
   's-tatt','s-tsus','s-satdrive','s-satmode','s-satmix','s-mgain','s-sgain',
   's-width','s-enhancer','s-haas','s-bassmono','s-rsize','s-rwet',
-  's-ceiling','s-lrelease','s-format',
+  's-ceiling','s-lrelease','s-format','s-preview-from',
   's-mb-lowx','s-mb-highx','s-mb-low-th','s-mb-low-ratio','s-mb-low-att','s-mb-low-rel','s-mb-low-mu',
   's-mb-mid-th','s-mb-mid-ratio','s-mb-mid-att','s-mb-mid-rel','s-mb-mid-mu',
   's-mb-high-th','s-mb-high-ratio','s-mb-high-att','s-mb-high-rel','s-mb-high-mu',

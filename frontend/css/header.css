@@ -2,11 +2,8 @@
   display: flex;
   align-items: center;
   gap: 0;
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border-bottom: 2px solid;
-  border-image: linear-gradient(90deg, var(--gradient-start), var(--gradient-end)) 1;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
   padding: 0 12px;
   position: relative;
 }
@@ -28,7 +25,7 @@
   align-items: center;
   padding: 0 12px;
   height: 100%;
-  border-right: 1px solid var(--glass-border);
+  border-right: 1px solid var(--border);
 }
 .header-section:last-child { border-right: none; }
 
@@ -50,9 +47,8 @@
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  transition: all .15s;
 }
-#btn-upload:hover { border-color: var(--accent); background: var(--surface2); box-shadow: 0 0 8px var(--glow-color); }
+#btn-upload:hover { border-color: var(--accent); background: var(--surface2); }
 .header-track-info {
   display: flex;
   flex-direction: column;
@@ -97,9 +93,8 @@
 #progress-bar-fill {
   width: 0%;
   height: 100%;
-  background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
   transition: width .3s;
-  box-shadow: 0 0 8px var(--glow-color);
 }
 #progress-stage { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
 
@@ -107,20 +102,6 @@
 #header-brand { gap: 6px; }
 .brand-name { font-weight: 700; font-size: 15px; letter-spacing: 1px; color: var(--accent); }
 .brand-version { font-size: 10px; color: var(--text-muted); }
-
-/* Theme dropdown */
-#theme-select {
-  font-size: 10px;
-  padding: 3px 6px;
-  background: var(--surface2);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: all .15s;
-}
-#theme-select:hover { border-color: var(--accent); }
-#theme-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 8px var(--glow-color); }
 
 /* Theme toggle */
 #theme-toggle {
@@ -148,6 +129,45 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all .15s;
 }
-#btn-logout:hover { background: var(--red); color: #fff; box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+#btn-logout:hover { background: var(--red); color: #fff; }
+
+/* ── System status (CPU/RAM/health dot) ── */
+.dash-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .04em;
+  color: var(--text-muted);
+  margin-right: 4px;
+  user-select: none;
+}
+#health-dot {
+  transition: color .25s ease, text-shadow .25s ease;
+  margin-left: 6px;
+  font-size: 11px;
+}
+#health-dot.warn {
+  color: var(--yellow);
+  text-shadow: 0 0 6px var(--yellow);
+  animation: pulse-warn 1.6s ease-in-out infinite;
+}
+#health-dot.crit {
+  color: var(--red);
+  text-shadow: 0 0 8px var(--red);
+  animation: pulse-crit .8s ease-in-out infinite;
+}
+@keyframes pulse-warn { 50% { opacity: .55 } }
+@keyframes pulse-crit { 50% { opacity: .40 } }
+
+/* Library picker button — mismo tamaño que btn-upload para alinear */
+#btn-library {
+  background: none;
+  border: 1px solid var(--border);
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#btn-library:hover { background: var(--accent-soft); border-color: var(--accent); }

@@ -26,7 +26,7 @@ export async function requestAnalysis(options = {}) {
   const fd = new FormData();
   fd.append('file', file, file.name);
   const res = await apiFetch(`${apiBase()}/analysis`, {
-    method: 'POST', body: fd, timeout: 0, maxRetries: 0,
+    method: 'POST', body: fd, timeout: 30000, maxRetries: 0,
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
@@ -37,6 +37,18 @@ export async function requestAnalysis(options = {}) {
   setStatus('ready', 'Análisis completo');
   emit('analysis-state', { state: 'ready', text: 'Análisis completo' });
   emit('analysis-updated', data);
+  const sp = Array.isArray(data?.spectrum) ? data.spectrum
+    : (data?.bands_db || data?.magnitudes_db || data?.values_db || null);
+  if (sp != null || data?.peak_db != null || data?.rms_db != null) {
+    window.dispatchEvent(new CustomEvent('lgmdm:metrics', { detail: { metrics: {
+      peak_db: data.peak_db, rms_db: data.rms_db,
+      lufs_momentary: data.lufs_momentary ?? data.lufs,
+      true_peak_db: data.true_peak_db,
+      stereo_correlation: data.stereo_correlation,
+      chain_meters: data.chain_meters,
+      spectrum: sp,
+    } } }));
+  }
   return data;
 }
 

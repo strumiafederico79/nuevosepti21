@@ -37,12 +37,14 @@ function updateTrackInfo(file) {
   if (nameEl) nameEl.textContent = file.name;
 
   const audio = new Audio();
-  audio.src = URL.createObjectURL(file);
+  const objUrl = URL.createObjectURL(file);
+  audio.src = objUrl;
   audio.addEventListener('loadedmetadata', () => {
     const dur = formatDuration(audio.duration);
     const size = formatSize(file.size);
     if (metaEl) metaEl.textContent = `${dur} · ${size}`;
-    URL.revokeObjectURL(audio.src);
+    // No revocar acá: el audio solo usa el URL para metadata.
+    // El preview/playback crea su propio blob (ver preview-controller.js).
   });
 }
 

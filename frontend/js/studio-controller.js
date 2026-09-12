@@ -30,7 +30,7 @@ const PLUGINS = {
       { key: 'dyneq_ratio', label: 'Ratio', type: 'range', min: 1, max: 20, step: 0.1, input: 's-dyneq-ratio', suffix: ':1' },
       { key: 'dyneq_attack_ms', label: 'Attack', type: 'range', min: 0.1, max: 200, step: 0.1, input: 's-dyneq-attack', suffix: ' ms' },
       { key: 'dyneq_release_ms', label: 'Release', type: 'range', min: 10, max: 1000, step: 5, input: 's-dyneq-release', suffix: ' ms' }
-    ]
+    ], bypassInput: 's-dyneq-bypass'
   },
   compressor: {
     family: 'DYNAMICS', label: 'Compressor', short: 'COMP', controls: [
@@ -39,7 +39,7 @@ const PLUGINS = {
       { key: 'comp_attack_ms', label: 'Attack', type: 'range', min: 0.1, max: 200, step: 0.1, input: 's-cattack', suffix: ' ms' },
       { key: 'comp_release_ms', label: 'Release', type: 'range', min: 10, max: 1000, step: 5, input: 's-crelease', suffix: ' ms' },
       { key: 'comp_makeup_db', label: 'Make-up', type: 'range', min: -12, max: 24, step: 0.5, input: 's-cmakeup', suffix: ' dB' }
-    ], stageBypass: 'comp'
+    ], bypassInput: 'comp-bypass'
   },
   multiband: {
     family: 'DYNAMICS', label: 'Comp-Multiband', short: 'MB COMP', controls: [
@@ -129,10 +129,10 @@ const PLUGINS = {
 
 const FAMILY_ORDER = ['INPUT', 'EQ', 'DYNAMICS', 'COLOR', 'STEREO', 'OUTPUT'];
 const BAND_ORDER = ['low', 'mid', 'high'];
+const STORAGE_VERSION = 2;
 
 const state = {
   active: new Set(['input', 'compressor', 'limiter']),
-  bypassed: new Set(),
   expanded: 'compressor',
   multibandBand: 'mid',
   savedValues: {},
@@ -167,6 +167,7 @@ export function formatValue(value, def) {
 function saveStorage() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      storageVersion: STORAGE_VERSION,
       active: [...state.active], expanded: state.expanded,
       band: state.multibandBand, savedValues: state.savedValues
     }));
@@ -177,12 +178,54 @@ function loadStorage() {
   try {
     const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!data) return;
+    // Sesión limpia: para plugins con bypassInput (mb-bypass, comp-bypass,
+    // s-glue-bypass, s-mscomp-bypass), el input oculto es la unica fuente de verdad
+    // y arranca en '1' desde el HTML. Los stage-bypass (comp, stereo, limiter)
+    // siguen usando savedValues PERO deben quedar limpios entre sesiones: si
+    // quedó persistido un valor '__bypassed__' o un dict de inputs obsoletos
+    // (versión vieja del schema), se descarta sin pisar nada. Esto evita que
+    // un flag zombie de hace N sesiones haga sonar todo clippeado o distorsionado.
     if (Array.isArray(data.active)) data.active.forEach(k => { if (PLUGINS[k]) state.active.add(k); });
-    if (Array.isArray(data.removed)) data.removed.forEach(k => state.active.delete(k));
     if (PLUGINS[data.expanded]) state.expanded = data.expanded;
     if (BAND_ORDER.includes(data.band)) state.multibandBand = data.band;
-    if (data.savedValues && typeof data.savedValues === 'object') state.savedValues = data.savedValues;
+    if (data.savedValues && typeof data.savedValues === 'object') {
+      for (const [k, v] of Object.entries(data.savedValues)) {
+        const p = PLUGINS[k];
+        if (!p || p.bypassInput) continue;
+        // BUGFIX Sep 11: 'limiter' SIEMPRE arranca activo al cargar sesión nueva.
+        // Cualquier '__bypassed__' previo era override manual local del usuario
+        // que no debería sobrevivir un page-reload — el brick-wall nunca debe
+        // estar apagado por defecto porque rompe previews con peaks >0 dBFS.
+        if (k === 'limiter' && v === '__bypassed__') continue;
+        state.savedValues[k] = v;
+      }
+    }
   } catch (_) {}
+}
+
+// Auto-limpieza one-shot de basura acumulada en localStorage.
+// Si después de muchas sesiones quedaron flags __bypassed__ de plugins
+// que ya no existen en PLUGINS, los purgamos para que no inflén los snapshots
+// ni confundan futuras migraciones de schema.
+export function purgeStaleSavedValues() {
+  let removed = 0;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return 0;
+    const data = JSON.parse(raw);
+    if (!data || typeof data !== 'object') return 0;
+    if (data.savedValues && typeof data.savedValues === 'object') {
+      for (const k of Object.keys(data.savedValues)) {
+        const p = PLUGINS[k];
+        if (!p || (p.bypassInput && data.savedValues[k] === '__bypassed__')) {
+          delete data.savedValues[k];
+          removed++;
+        }
+      }
+      if (removed > 0) localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+  } catch (_) {}
+  return removed;
 }
 
 export function isActive(key) {
@@ -190,19 +233,50 @@ export function isActive(key) {
 }
 
 export function isStageBypassed(stage) {
-  const plugin = Object.entries(PLUGINS).find(([, p]) => p.stageBypass === stage)?.[0];
-  if (!plugin) return false;
-  return state.savedValues[plugin] != null;
+  const pluginEntry = Object.entries(PLUGINS).find(([, p]) => p.stageBypass === stage);
+  if (!pluginEntry) return false;
+  const [, plugin] = pluginEntry;
+  // Unica fuente de verdad: input oculto si existe, sino estado interno.
+  if (plugin.bypassInput) {
+    const el = cachedEl(plugin.bypassInput);
+    return el?.value === '1' || el?.value === 'true';
+  }
+  return state.savedValues[pluginEntry[0]] != null;
 }
 
 export function getBypassState() {
   const result = {};
   for (const [key, plugin] of Object.entries(PLUGINS)) {
+    if (plugin.bypassInput) {
+      const el = cachedEl(plugin.bypassInput);
+      result[key] = el ? (el.value === '1' || el.value === 'true') : false;
+    }
     if (plugin.stageBypass) {
-      result[plugin.stageBypass] = state.savedValues[key] != null;
+      result[plugin.stageBypass] = isStageBypassed(plugin.stageBypass);
     }
   }
   return result;
+}
+
+export function isPluginBypassed(key) {
+  const plugin = PLUGINS[key];
+  if (!plugin) return false;
+  if (plugin.stageBypass) return isStageBypassed(plugin.stageBypass);
+  if (plugin.bypassInput) {
+    const el = cachedEl(plugin.bypassInput);
+    return el?.value === '1' || el?.value === 'true';
+  }
+  if (plugin.virtualBypass) {
+    const inputs = Array.isArray(plugin.virtualBypass.inputs)
+      ? plugin.virtualBypass.inputs
+      : [plugin.virtualBypass.input];
+    if (!inputs.length) return false;
+    return inputs.every(id => {
+      const el = cachedEl(id);
+      return el != null && Number(el.value) === plugin.virtualBypass.inactiveValue;
+    });
+  }
+  return false;
 }
 
 export function setPluginBypass(key, bypassed) {
@@ -217,7 +291,7 @@ export function setPluginBypass(key, bypassed) {
         if (el.dataset.consoleSaved == null) el.dataset.consoleSaved = el.value;
         if (plugin.stageBypass === 'comp') el.value = id === 's-ratio' ? '1' : '0';
         if (plugin.stageBypass === 'stereo') el.value = '1';
-        if (plugin.stageBypass === 'limiter') el.value = '0.999';
+        if (plugin.stageBypass === 'limiter') el.value = '-0.1';
       } else if (el.dataset.consoleSaved != null) {
         el.value = el.dataset.consoleSaved;
       }
@@ -293,7 +367,8 @@ function renderDspList() {
 function cardHeader(key) {
   const p = PLUGINS[key];
   const open = state.expanded === key;
-  return `<button class="studio-plugin-header" type="button" data-studio-expand="${key}" aria-expanded="${open}"><span class="studio-plugin-status"></span><span class="studio-plugin-header-title">${p.label}</span><span class="studio-plugin-header-meta">${p.short}</span><span class="studio-chevron">${open ? '▼' : '▶'}</span></button>`;
+  const bypassed = isPluginBypassed(key);
+  return `<div class="studio-plugin-header-row"><button class="studio-plugin-status-btn" type="button" data-studio-bypass="${key}" aria-pressed="${bypassed}" aria-label="${bypassed ? 'Activar' : 'Bypass'} ${p.label}"><span class="studio-plugin-status"></span></button><button class="studio-plugin-header" type="button" data-studio-expand="${key}" aria-expanded="${open}"><span class="studio-plugin-header-title">${p.label}</span><span class="studio-plugin-header-meta">${p.short}</span><span class="studio-chevron">${open ? '▼' : '▶'}</span></button></div>`;
 }
 
 function renderControls(key) {
@@ -324,12 +399,9 @@ function renderControls(key) {
     wrap.appendChild(row);
   });
   const actions = document.createElement('div'); actions.className = 'studio-plugin-actions';
-  const bypass = document.createElement('button'); bypass.type = 'button'; bypass.className = 'studio-action-btn'; bypass.textContent = 'BYPASS';
-  bypass.addEventListener('click', () => {
-    const currentlyBypassed = state.bypassed.has(key);
-    setPluginBypass(key, !currentlyBypassed);
-    render(); saveStorage();
-  });
+  const bypassed = isPluginBypassed(key);
+  const bypass = document.createElement('button'); bypass.type = 'button'; bypass.className = `studio-action-btn ${bypassed ? 'bypass-active' : ''}`; bypass.textContent = bypassed ? 'UNBYPASS' : 'BYPASS';
+  bypass.addEventListener('click', () => { setPluginBypass(key, !bypassed); render(); saveStorage(); });
   const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'studio-action-btn danger'; remove.textContent = 'REMOVE';
   remove.addEventListener('click', () => activate(key, false));
   actions.appendChild(bypass); actions.appendChild(remove); wrap.appendChild(actions);
@@ -341,9 +413,11 @@ function renderRack() {
   if (!mount) return;
   mount.innerHTML = '';
   [...state.active].forEach(key => {
-    const card = document.createElement('article'); card.className = `studio-plugin-card ${state.expanded === key ? 'expanded' : ''}`;
+    const bypassed = isPluginBypassed(key);
+    const card = document.createElement('article'); card.className = `studio-plugin-card ${state.expanded === key ? 'expanded' : ''} ${bypassed ? 'bypassed' : ''}`;
     card.innerHTML = cardHeader(key);
     card.querySelector('[data-studio-expand]').addEventListener('click', () => { state.expanded = state.expanded === key ? null : key; saveStorage(); renderRack(); });
+    card.querySelector('[data-studio-bypass]').addEventListener('click', () => { setPluginBypass(key, !isPluginBypassed(key)); render(); saveStorage(); });
     if (state.expanded === key) card.appendChild(renderControls(key));
     mount.appendChild(card);
   });
@@ -420,12 +494,14 @@ export function updateCentralGR(metrics) {
 
 export function install() {
   if (state.mounted) return;
-  localStorage.removeItem(STORAGE_KEY);
-  state.active = new Set(['input', 'compressor', 'limiter']);
-  state.savedValues = {};
-  syncPluginBypass('compressor', true);
-  syncPluginBypass('limiter', true);
-  saveStorage();
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) {
+    try {
+      const d = JSON.parse(raw);
+      if (d.storageVersion !== STORAGE_VERSION) localStorage.removeItem(STORAGE_KEY);
+    } catch (_) { localStorage.removeItem(STORAGE_KEY); }
+  }
+  loadStorage();
   render();
   window.addEventListener('lgmdm:metrics', e => updateCentralGR(e.detail?.metrics));
   window.addEventListener('lgmdm:preview-telemetry', e => {

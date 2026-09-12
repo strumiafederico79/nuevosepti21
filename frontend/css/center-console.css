@@ -7,8 +7,7 @@
   flex-direction: column;
   gap: var(--gap);
   min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 /* ── Sub-header ── */
@@ -32,17 +31,14 @@
 }
 
 /* ── VU Meters L/R (compactos a la izquierda) ── */
-.console-vu-wrap { display: flex; gap: 6px; justify-content: center; padding: 6px; }
 #console-meter-lr {
   display: flex;
   flex-direction: row;
   gap: 6px;
   align-items: flex-start;
   padding: 6px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   flex-shrink: 0;
   width: 60px;
@@ -73,19 +69,15 @@
   transition: height .08s;
 }
 #console-meter-lr span { font-size: 9px; color: var(--text-muted); text-align: center; }
-.vu-channel span { font-size: 0.6rem; text-align: center; color: var(--text-muted); padding: 0.1rem 0; background: var(--surface); }
 
 /* ── Spectrum Analyzer ── */
 #spectrum-wrap {
   flex: 1;
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 8px;
   min-width: 0;
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
 }
 #spectrum-canvas {
   width: 100%;
@@ -98,6 +90,22 @@
   font-size: 9px;
   color: var(--text-muted);
   margin-top: 4px;
+}
+
+/* ── Row: Waveform ── */
+#waveform-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px;
+  height: var(--waveform-h);
+  min-height: var(--waveform-h);
+  flex-shrink: 0;
+}
+#lgmdmWaveformCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 /* ── Row: Controls (Preview + Play + Master Buttons) ── */
@@ -136,6 +144,23 @@
 #btn-master:hover { opacity: .9; }
 #btn-auto-master { background: var(--accent2); color: #000; border-color: var(--accent2); }
 #btn-auto-master:hover { opacity: .9; }
+
+/* BUGFIX Sep 11: download button quedaba invisible o sin destacar. Ahora con
+   clase btn-download-ready (asignada por main.js al completarse master) gana:
+   display inline-flex (no se ve afectado por display:none anterior), fondo
+   verde de estado OK, animación pulse para llamar atención. */
+#btn-download.btn-download-ready {
+  background: linear-gradient(135deg, var(--green), color-mix(in srgb, var(--green) 70%, var(--bg)));
+  color: var(--bg);
+  border-color: var(--green);
+  animation: downloadReadyPulse 1.4s ease-out;
+  box-shadow: 0 0 0 1px var(--green), 0 0 14px color-mix(in srgb, var(--green) 40%, transparent);
+}
+@keyframes downloadReadyPulse {
+  0%   { transform: scale(.92); box-shadow: 0 0 0 1px var(--green), 0 0 0 rgba(0,0,0,0); }
+  60%  { transform: scale(1.06); box-shadow: 0 0 0 1px var(--green), 0 0 22px color-mix(in srgb, var(--green) 60%, transparent); }
+  100% { transform: scale(1);    box-shadow: 0 0 0 1px var(--green), 0 0 14px color-mix(in srgb, var(--green) 40%, transparent); }
+}
 
 /* ── Console Resize Handles ── */
 .console-resize-handle {
@@ -177,6 +202,61 @@
 }
 #preview-toggle-wrap input { accent-color: var(--accent); }
 #previewAudioWrap { display: none; }
+
+/* Barra de progreso del render server-side del Preview. No hay un % real
+   que el backend reporte durante el render (es un solo request bloqueante
+   que devuelve el WAV entero al terminar), así que se anima como "trabajando"
+   en vez de mostrar un porcentaje inventado — el objetivo es que el usuario
+   sepa CUÁNDO puede tocar play, no cuánto falta exacto. */
+.preview-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.preview-progress[hidden] { display: none; }
+.preview-progress-track {
+  position: relative;
+  width: 90px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--surface2, var(--surface));
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.preview-progress-fill {
+  position: absolute;
+  top: 0; left: -40%;
+  height: 100%;
+  width: 40%;
+  border-radius: 999px;
+  background: var(--accent);
+  animation: preview-progress-slide 1.1s ease-in-out infinite;
+}
+@keyframes preview-progress-slide {
+  0%   { left: -40%; }
+  100% { left: 100%; }
+}
+.preview-progress-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+.preview-progress.is-done .preview-progress-fill {
+  animation: none;
+  left: 0;
+  width: 100%;
+  background: var(--green, var(--accent));
+}
+.preview-progress.is-error .preview-progress-fill {
+  animation: none;
+  left: 0;
+  width: 100%;
+  background: var(--red, var(--accent));
+}
 .playback-inline {
   display: flex;
   gap: 4px;
@@ -209,7 +289,6 @@
   background: var(--accent);
   border-radius: 1px;
   transition: left 0.1s linear;
-  box-shadow: 0 0 6px var(--glow-color);
 }
 
 /* ── LAIA Chat (fill remaining space) ── */
@@ -218,13 +297,51 @@
   display: flex;
   flex-direction: column;
   min-height: 120px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
 }
 
+/* ── GR Meters ── */
+#gr-meters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+.gr-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.gr-label { font-size: 9px; color: var(--text-muted); text-align: center; }
+.gr-bar-wrap {
+  height: 6px;
+  background: var(--bg);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.gr-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width .08s;
+}
+.gr-value { font-size: 8px; color: var(--text-muted); text-align: center; font-family: var(--mono); }
+
+#chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  min-height: 0;
+}
 .chat-msg {
   padding: 6px 10px;
   border-radius: var(--radius);
@@ -247,11 +364,9 @@
 /* ── Studio GR Panel ── */
 .studio-gr-panel {
   padding: 0.5rem;
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
+  background: var(--surface);
 }
 /* studio-gr-panel base — gr-bands and gr-band styles moved to shared.css */
 
@@ -336,6 +451,18 @@
 .pm-card strong { font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
 .pm-card .metric-value { font-size: 16px; font-weight: 700; font-family: var(--mono); }
 
+.ref-match-panel { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
+.ref-match-panel h3 { font-size: 12px; font-weight: 600; margin-bottom: 8px; color: var(--accent); }
+.ref-match-score-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.ref-match-score-circle { display: flex; flex-direction: column; align-items: center; padding: 8px; border: 2px solid var(--accent); border-radius: 50%; width: 56px; height: 56px; justify-content: center; flex-shrink: 0; }
+.match-bar-row { margin-bottom: 8px; }
+.match-bar-label { font-size: 11px; margin-bottom: 2px; }
+.match-bar-track { height: 6px; background: var(--surface); border-radius: 3px; position: relative; overflow: visible; }
+.match-bar-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width .3s; }
+.match-bar-marker { position: absolute; top: -2px; width: 3px; height: 10px; background: var(--accent2); border-radius: 1px; }
+.match-bar-values { font-size: 10px; font-family: var(--mono); margin-top: 2px; }
+.match-bar-values span { color: var(--text-muted); }
+
 /* ══════════════════════════════════════════════════════════════
    UI Elements (added for new HTML structure)
    ══════════════════════════════════════════════════════════════ */
@@ -388,10 +515,8 @@
   flex-direction: column;
   gap: 6px;
   padding: 6px 8px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   min-height: var(--meters-h);
   overflow-y: auto;
@@ -400,7 +525,7 @@
 .meter-item { display: flex; align-items: center; gap: 4px; font-size: 10px; }
 .meter-label { width: 50px; color: var(--text-muted); text-align: right; flex-shrink: 0; }
 .meter-bar-wrap { flex: 1; height: 4px; background: var(--bg); border-radius: 2px; overflow: hidden; }
-.meter-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; transition: width .08s; box-shadow: var(--meter-glow); }
+.meter-bar-fill { height: 100%; width: 0%; background: var(--accent); border-radius: 2px; transition: width .08s; }
 .meter-readout { width: 70px; font-family: var(--mono); font-size: 9px; color: var(--text-muted); text-align: right; flex-shrink: 0; }
 
 /* ── Frequency Bands ── */
@@ -431,10 +556,8 @@
   display: flex;
   gap: 8px;
   padding: 6px 8px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   flex-wrap: wrap;
   align-items: center;
